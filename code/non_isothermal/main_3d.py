@@ -683,7 +683,7 @@ fields = ["dimension", "pressure",
           "passive_tracer","temperature",
           "aperture_difference", "ratio_perm"]
 
-time_store = np.arange(1,20) * 1e2
+time_store = np.arange(1,15) * 1e2
 j=0
 
 current_time = data_3d[pp.PARAMETERS]["transport"]["current_time"]
@@ -705,7 +705,7 @@ while current_time < final_time:
 
     current_time = data_3d[pp.PARAMETERS]["transport"]["current_time"]
 
-    if j < len(time_store) and np.abs(current_time-time_store[j]) < 4:
+    if j < len(time_store) and np.abs(current_time-time_store[j]) < 3:
        
         j += 1
         to_paraview.write_vtu(fields, time_step = current_time)
