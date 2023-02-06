@@ -1,0 +1,30 @@
+Parameters used for the Newton solver.
+Read the values as: 
+min_dt, max_dt; adjusted based on (min, max) Newton iterations; maximum Newton steps allowed
+
+In all the simulations, we increase the time step by 2 or decrease it by 4  
+
+Isothermal convergence study:
+	- ref 0: 1e-10, 5; (5, 40); 50
+	- ref 1: 1e-10, 5; (5, 40); 50
+	- ref 2: 1e-10, 5; (5, 40); 50 
+	- ref 3: 1e-10, 2; (5, 40); 50 
+	- ref 4: 1e-10, 2; (4, 15); 20 
+	- ref 5: 1e-10, 1; (4, 15); 20
+    For these simulations, we declare convergence if one of the following criteria is satisfied:
+    relative residual error < 1e-7, absolute residual error < 1e-6, relative forward error < 1e-9
+	  
+Non-isothermal convergence study
+	- ref 0: 1e-10, 10; (5, 20); 30
+	- ref 1: 1e-10, 10; (5, 20); 30
+	- ref 2: 1e-10, 5; (5, 20); 30
+	- ref 3: 1e-10, 2; (5, 20); 30
+	- ref 4: 1e-10, 2; (5, 14); 20
+	- ref 5: 1e-10, 1; (5, 14); 20
+    For these simulations, we declare convergence if one of the following criteria is satisfied:
+    relative residual error < 1e-8, absolute residual error < 1e-7, relative forward error < 1e-9
+	  
+3D simulation
+	1e-10, 5; (5,16); 25 
+    For this simulation, we declare convergence if one of the following criteria is satisfied:
+    relative residual error < 1e-7, absolute residual error < 1e-6, relative forward error < 1e-9
