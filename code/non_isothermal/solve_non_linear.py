@@ -4,7 +4,6 @@ Solve a non-linear equation
 
 import numpy as np
 import porepy as pp
-import scipy.sparse as sps
 from newton import newton_gb
 from update_param import update_concentrations
     

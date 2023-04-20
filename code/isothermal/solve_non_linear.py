@@ -16,7 +16,6 @@ def solve(gb, dof_manager, equation_manager):
     conv,newton_iter = newton_gb(gb, 
                                  equation_manager, 
                                  dof_manager, 
-                                 "log_X", 
                                  np.array([-30, 25]) 
                                  )
     

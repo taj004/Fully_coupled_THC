@@ -15,6 +15,7 @@ from update_param import taylor_app_equil, update_interface, update_intersection
 
 import pickle
 from pathlib import Path
+import os
 
 import sys
 sys.path.insert(0, "..")
@@ -49,12 +50,6 @@ E = sps.csr_matrix(
     )
 )
 
-# The number of primary and secondary species can be inferred from the number of
-# columns and rows, respectively, of S_W.
-# The indices of which primary species are aqueous are specified below.
-# Note that the aqueous secondary species should have no connection with fixed
-# primary species (the column of S should be all zeros).
-
 # Bookkeeping
 # Index of aquatic and fixed components, referring to the cell-wise T vector
 aq_components = np.array([0, 1, 2, 3])
@@ -65,9 +60,10 @@ num_components = num_aq_components + num_fixed_components
 num_secondary_components = S.shape[0]
 
 # Define fractures and a gb
-mesh_args={"mesh_size_frac" : 0.03, 
-           "mesh_size_min"  : 0.05, 
-           "mesh_size_bound": 0.05}
+mesh_args={"mesh_size_frac" : 0.13, 
+           "mesh_size_min"  : 0.15, 
+           "mesh_size_bound": 0.15}
+
 gb = create_mesh.create_gb(mesh_args=mesh_args,
                            dim=3,
                            fractured=True)
@@ -219,7 +215,7 @@ for g, d in gb:
     
     if g.dim == gb.dim_max():
        aperture = unity
-    elif g.dim == 1 : #gb.dim_min():
+    elif g.dim == gb.dim_max()-2:
         aperture = update_intersection_aperture(gb,g)
     else:
         aperture = open_aperture - (
@@ -244,7 +240,6 @@ for g, d in gb:
     else:
         K = np.power(aperture, 2) / 12
     # end if-else
-    
     kk = K * specific_volume / constant_params.dynamic_viscosity()
     # --------------------------------- #
 
@@ -487,7 +482,7 @@ for g, d in gb:
         d[pp.PARAMETERS][transport_kw].update({
             "time_step": 0.05, 
             "current_time": 0,
-            "final_time": 2000,
+            "final_time": 1500,
             "aqueous_components": aq_components
         })
         d[pp.PARAMETERS]["grid_params"] = {
@@ -550,7 +545,7 @@ for g, d in gb:
 # end g,d-loop
 
 equil_state_to_param(gb)
-#pp.plot_grid(gb, "dimension", figsize=(15,12))
+
 
 #%% Loop over the edges:
 i=0
@@ -719,7 +714,13 @@ print(f"Current time {current_time}")
 
 #%% Store the grid bucket
 gb_list = [gb] 
-folder_name = "to_study/3D/" # Assume this folder exist
+
+# Make folder
+folder_name = "to_study/3D/" 
+if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
+# end if
+
 gb_name = "gb_3D" 
 
 def write_pickle(obj, path):

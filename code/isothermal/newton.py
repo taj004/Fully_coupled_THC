@@ -9,11 +9,12 @@ import numpy as np
 import scipy.sparse as sps
 import porepy as pp
 
+#import pypardiso
 import equations
 import update_param
 
 def update_darcy(dof_manager):
-    """ Update the darcy flux in the (solute) transport parameter dictionaries 
+    """ Update the darcy flux in the parameter dictionaries 
     
     """
     
@@ -178,32 +179,11 @@ def backtrack(equation, dof_manager,
     # end i-loop
         
     return 
-
-
-def print_piecewise_residual_error(r, dof_manager):
-    "Print the resudial error for the different variables"
     
-    dof_ind = np.cumsum(np.hstack((0, dof_manager.full_dof)))
-    
-    for key, val in dof_manager.block_dof.items():
-        if isinstance(key[0], tuple) is False:
-            if key[0].dim > 0:
-                print(f"Current dimension {key[0].dim}") 
-                ind = slice(dof_ind[val], dof_ind[val+1])
-                part_r = r[ind]
-                print(f"Residual for {key[1]} is {np.linalg.norm(part_r)}")
-        else: 
-            pass # FIXME    
-        # end key,val-loop
-    
-    
-    return 
-
-#@profile    
-def newton_gb(gb, equation,
-              dof_manager, 
-              target_name = "",
-              clip_low_and_up = np.array([1e-100, 1e100])):
+def newton_gb(gb: pp.GridBucket, 
+              equation: pp.ad.EquationManager,
+              dof_manager: pp.DofManager, 
+              clip_low_and_up: np.array = np.array([1e-100, 1e100])):
     """
     Newton's method applied to an equation, pulling values and state from gb.
     
@@ -211,7 +191,6 @@ def newton_gb(gb, equation,
     ----------
     equation, The equation we want to solve
     dof_manager, the associated dof_manager
-    target_name, string. Value used to target a keyword and clip the associated numerical values 
     clip_low_and_up, numpy array. the upper and lower bound for clipping. 
           The form is np.array([low, up]). The values are interpreted as log values. 
           E.g. np.array([-30,25]), where -30 and 25 is interpreted as
@@ -260,7 +239,7 @@ def newton_gb(gb, equation,
         # New solution
         x_new = dof_manager.assemble_variable(from_iterate=True)
         x = clip_variable(x_new.copy(), 
-                          dof_manager, target_name, 
+                          dof_manager, "log_X", 
                           min_val, max_val) 
 
         

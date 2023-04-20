@@ -20,7 +20,7 @@ def create_gb(
         fractured (boolean, optional) Whether fractures are present.
             Default is False
     """
-
+    
     if not mesh_args:
         raise ValueError("Mesh parameters must be given")
 

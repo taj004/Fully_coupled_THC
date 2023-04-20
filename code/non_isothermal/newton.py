@@ -11,7 +11,7 @@ import numpy as np
 import scipy.sparse.linalg as spla
 import porepy as pp
 
-import pypardiso
+#import pypardiso
 import equations
 import update_param
 
@@ -172,8 +172,6 @@ def backtrack(equation, dof_manager,
        # end if-else    
        
         # Check if the new step size is to big
-        # From a safty point of view, this helps if alpha_temp is inf.
-        # Is it ok to use if alpha_temp is nan?
         alpha_temp = min(alpha_temp,u)
     
         # Update the values, while ensuring that step size is not too small
@@ -196,7 +194,6 @@ def backtrack(equation, dof_manager,
 def newton_gb(gb: pp.GridBucket, 
               equation: pp.ad.EquationManager,
               dof_manager: pp.DofManager, 
-              #target_name: str = "",
               clip_low_and_up: np.array = np.array([1e-100, 1e100])):
     """
     Newton's method applied to an equation, pulling values and state from gb.
@@ -239,8 +236,8 @@ def newton_gb(gb: pp.GridBucket,
         dx = spla.spsolve(J, resid, use_umfpack=False) 
         #dx = pypardiso.spsolve(J, resid) 
         # For refinement level 4 and 5, and the 3D simulation, 
-        # the PyPardiso was emplyed for the linear system. For installation, 
-        # see e.g. https://github.com/haasad/PyPardisoProject
+        # PyPardiso was emplyed for the linear system. For installation, 
+        # see https://github.com/haasad/PyPardisoProject
        
         # Solution from prevous iteration step
         x_prev = dof_manager.assemble_variable(from_iterate=True)

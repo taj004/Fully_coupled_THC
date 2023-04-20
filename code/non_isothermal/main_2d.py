@@ -14,6 +14,7 @@ import update_param
 
 import pickle
 from pathlib import Path
+import os
 
 import sys
 sys.path.insert(0, "..")
@@ -48,12 +49,6 @@ E = sps.csr_matrix(
     )
 )
 
-# The number of primary and secondary species can be inferred from the number of
-# columns and rows, respectively, of S_W.
-# The indices of which primary species are aqueous are specified below.
-# Note that the aqueous secondary species should have no connection with fixed
-# primary species (the column of S should be all zeros).
-
 # Bookkeeping
 # Index of aquatic and fixed components, referring to the cell-wise T vector
 aq_components = np.array([0, 1, 2, 3])
@@ -64,12 +59,12 @@ num_components = num_aq_components + num_fixed_components
 num_secondary_components = S.shape[0]
 
 # Define fractures and a gb
-ref_level = 0 # The refinementlevels are 0, 1, 2, 3, 4; The finest grid uses dx=0.007
+ref_level = 0 # The refinement levels are 0, 1, 2, 3, 4; The finest grid uses dx=0.007
 size = 0.2 / np.power(2,ref_level)
 mesh_args={"mesh_size_frac" : size, 
            "mesh_size_min"  : size, 
            "mesh_size_bound": size}
-gb = create_mesh.create_gb(mesh_args, grid_type="unstructured", fractured=True)
+gb = create_mesh.create_gb(mesh_args, fractured=True)
 
 #%%
 domain = {"xmin": 0, "xmax": gb.bounding_box()[1][0],
@@ -214,11 +209,10 @@ for g, d in gb:
     
     if g.dim == gb.dim_max():
         aperture = unity
-    elif g.dim == gb.dim_min():
+    elif g.dim == gb.dim_max()-2:
         # the fracture aperture is uniform, hence the 
         # average value is identical to its neighbouring value
-        aperture = aperture[0] * unity #update_param.temporary_update_intersection_aperture(gb)
-        # FIXME temporary_update can probably be deleted
+        aperture = aperture[0] * unity
     else:
         aperture = open_aperture - (
             mineral_width_CaCO3 +  mineral_width_CaSO4 
@@ -601,16 +595,10 @@ for e, d in gb.edges():
 
 # Finally, set interfacial conductive flux
 update_param.update_interface(gb)
-#assert False
+
 #%% The data in various dimensions
 gb_2d = gb.grids_of_dimension(2)[0]
 data_2d = gb.node_props(gb_2d)
-
-
-#gb_1d = gb.grids_of_dimension(1)[2]
-#data_1d = gb.node_props(gb_1d)
-
-#data_0d = gb.node_props(gb.grids_of_dimension(0)[0])
 
 # Fill in grid related parameters
 grid_list = [g for g,_ in gb]
@@ -703,7 +691,12 @@ print(f"Current time {current_time}")
 #%% Store the grid bucket
 gb_list = [gb] 
 
-folder_name = "to_study/2D/" # Assume this folder exist
+# Make folder 
+folder_name = "to_study/2D/" 
+if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
+#end if
+
 gb_refinement_name = folder_name + "gb_" + refinement_level 
 
 def write_pickle(obj, path):

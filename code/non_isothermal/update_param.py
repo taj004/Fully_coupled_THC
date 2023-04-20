@@ -169,7 +169,8 @@ def update_interface(gb):
 
 def specific_vol(gb,g):
     return gb.node_props(g)[pp.PARAMETERS]["mass"]["specific_volume"]
-    
+
+
 def update_intersection_aperture(gb, g):
     """
     calulcate aperture intersection points (i.e. 0-d)
@@ -222,53 +223,6 @@ def update_intersection_aperture(gb, g):
     
     return aperture
 
-def temporary_update_intersection_aperture(gb):
-    """
-    aperture and specific volume at intersections
-    """
-    for g,d in gb:
-        
-        parent_aperture = []
-        num_parent = []
-        
-        if g.dim == gb.dim_min():
-            
-            assert pp.PARAMETERS not in d.keys()
-            
-            for edges in gb.edges_of_node(g):
-                e = edges[0]
-                gh = e[0]
-                
-                if gh == g:
-                    gh = e[1]
-                # end if
-            
-                if gh.dim == (gb.dim_max()-1):
-                    dh = gb.node_props(gh)
-                    a = dh[pp.PARAMETERS]["mass"]["aperture"]
-                    ah = np.abs(gh.cell_faces) * a
-                    mg = gb.edge_props(e)["mortar_grid"]
-                    
-                    al = (
-                        mg.mortar_to_secondary_avg() *
-                        mg.primary_to_mortar_avg() *
-                        ah
-                        )
-                    
-                    parent_aperture.append(al)
-                    num_parent.append(
-                        np.sum(mg.mortar_to_secondary_int().A, axis=1)
-                        )
-                    # end if
-            # end edge-loop
-            
-            parent_aperture = np.array(parent_aperture)
-            num_parent = np.sum(np.array(num_parent), axis=0)
-            aperture = np.sum(parent_aperture, axis=0) / num_parent
- 
-            return aperture
-        
-
 def rho(p, temp):
     """
     Constitutive law between density and pressure
@@ -305,6 +259,9 @@ def aperture_state_to_param(gb):
     for g,d in gb:
 
         d_mass = d[pp.PARAMETERS]["mass"]
+        
+        # Clip to avoid unphysical aperture; however it in the paper simulations
+        # this is not really needed
         aperture = np.clip(
             d[pp.STATE][pp.ITERATE]["aperture"].copy(), 1e-7, constant_params.open_aperture()
             )

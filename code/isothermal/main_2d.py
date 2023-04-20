@@ -5,11 +5,11 @@ Main script
 
 # %% Import the neseccary packages
 import pickle
+import os
 from pathlib import Path
 
 import numpy as np
 import scipy.sparse as sps
-import matplotlib.pyplot as plt
 import porepy as pp
 
 import update_param
@@ -51,12 +51,6 @@ E = sps.csr_matrix(
     )
 )
 
-# The number of primary and secondary species can be inferred from the number of
-# columns and rows, respectively, of S_W.
-# The indices of which primary species are aqueous are specified below.
-# Note that the aqueous secondary species should have no connection with fixed
-# primary species (the column of S should be all zeros).
-
 # Index of aquatic and fixed components, referring to the cell-wise T vector
 aq_components = np.array([0, 1, 2, 3])
 fixed_components = 0
@@ -72,7 +66,7 @@ size = 0.2 / np.power(2,ref_level)
 mesh_args={"mesh_size_frac" : size,
            "mesh_size_min"  : size,
            "mesh_size_bound": size}
-gb = create_gb(mesh_args=mesh_args, grid_type="unstructured", fractured=True)
+gb = create_gb(mesh_args=mesh_args, fractured=True)
 
 domain = {"xmin": 0, "xmax": gb.bounding_box()[1][0], 
           "ymin": 0, "ymax": gb.bounding_box()[1][1]} 
@@ -111,8 +105,6 @@ for g, d in gb:
     d["is_tangential"] = True
 
     # Initialize the primary variable dictionaries
-    # For some reason, equation.py had some unknown (atleast to me) issues with keywords.
-    # My solution was to initial the keyword primary variables as below
     d[pp.PRIMARY_VARIABLES] = {pressure:  {"cells": 1},
                                tot_var:   {"cells": num_components},
                                log_var:   {"cells": num_components},
@@ -206,12 +198,14 @@ for g, d in gb:
     
     if g.dim == gb.dim_max():
         aperture = unity
-    elif g.dim == 1:
+    elif g.dim == gb.dim_max() - 1:
         aperture = constant_params.open_aperture() - (
             mineral_width_CaCO3 + mineral_width_CaSO4
             ) 
     else: 
-        aperture = aperture[0]*unity  #update_param.update_intersection_aperture(gb, g)
+        # the fracture aperture is uniform, hence the 
+        # average value is identical to its neighbouring value
+        aperture = aperture[0]*unity 
     # end if-else
 
     specific_volume = np.power(aperture, gb.dim_max()-g.dim)
@@ -575,7 +569,7 @@ for e, d in gb.edges():
     d[pp.DISCRETIZATION_MATRICES][tracer_kw] = {}  
 
 # end e,d-loop
- # For flow, we also need the the normal diffusivity
+ # For flow and temperature, we also need the the normal diffusivity
 update_param.update_interface(gb)
 
 #%% The data in various dimensions
@@ -648,7 +642,7 @@ current_time = data_2d[pp.PARAMETERS]["transport"]["current_time"]
 final_time = data_2d[pp.PARAMETERS]["transport"]["final_time"]
 
 #%% Time loop
-while current_time < final_time:
+while current_time < 0.1:
     print(f"current time {current_time}")
     
     # Solve
@@ -688,7 +682,13 @@ eq_test5 = np.abs(conc_dict["OH-"] * conc_dict["H+"] - equil_consts[2]) < 1e-2
 
 #%% Store the grid bucket
 gb_list = [gb] 
-folder_name = "to_study/" # Assume this folder exist
+
+# Make folder
+folder_name = "to_study/" 
+if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
+# end if
+        
 refinement_level = "refinement_level_" + str(ref_level)
 gb_refinement_name = folder_name + "gb_" + refinement_level 
 
