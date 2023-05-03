@@ -2,25 +2,20 @@ import numpy as np
 import porepy as pp
 
 
-def create_gb(
-    mesh_args: dict, dim: int = 2, fractured: bool = False
-):
+def create_gb(mesh_args: dict, dim: int = 2, fractured: bool = False):
     """
-    Create the grid for the computations.
-    Two different types in 2D:
-        - Cartesian 2D grid, either without fractures or with three fractures,
-                    where two intersect at one point
-        - An unstructured 2D grid, without fractures, or with five fractures
-    All grids have physical dimension [0,2] x [0,2]
-    One in 3D, without fractures or with two that intersect at a line
+    Create the grid for the computations:
+       - An unstructured 2D grid, without fractures, or with five fractures
+       - A 3D grid, either without fractures or with two that intersect at a line
 
     Parameters:
-        mesh_args (dict): contains mesh arguments for the unstrucured grid
+        mesh_args (dict): contains mesh arguments for the (unstrucured) grid
         dim: int: highest dimension of grid
-        fractured (boolean, optional) Whether fractures are present.
+        fractured (boolean, optional): Whether fractures are present.
             Default is False
+
     """
-    
+
     if not mesh_args:
         raise ValueError("Mesh parameters must be given")
 
