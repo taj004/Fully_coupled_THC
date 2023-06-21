@@ -708,6 +708,12 @@ def gather(gb, dof_manager, equation_manager, iterate=False):
         d1 = constant_params.density_CaCO3()
         d2 = constant_params.density_CaSO4()
 
+        # Bug report: It turned out this part of the equation was not 
+        # divided by a (cell-) volume to make it a volume fraction. 
+        # However, based on a minor inspection when the scaling 
+        # is preformed, all the values of the various pieces in the equation were 
+        # almost identical. Therefore, fixing the bug would most likely not 
+        # change the results in the paper much.
         mins = np.vstack(
             [mm1 / d1 * gb.cell_volumes(), mm2 / d2 * gb.cell_volumes()]
         ).ravel("F")
